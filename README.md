@@ -51,11 +51,12 @@ The first command imports that image we downloaded earlier, if your disk storage
         - apt update
         - apt install -y qemu-guest-agent
         - systemctl start qemu-guest-agent
+        - systemctl enable serial-getty@ttyS0.service
         - reboot
     # Taken from https://forum.proxmox.com/threads/combining-custom-cloud-init-with-auto-generated.59008/page-3#post-428772
     EOF
 
-This file performs two purposes, the first rather obvious (installing qemu-guest-agent) the second not so much. For some reason CloudInit starts *after* networking and thus you can't SSH or even ping the VM by the name you give it. This package is only run once so after this reboot you'll be able to use the VM.
+This file performs two purposes, the first rather obvious (installing qemu-guest-agent) the second not so much. For some reason CloudInit starts *after* networking and thus you can't SSH or even ping the VM by the name you give it. Enabling serial will allow xterm.js access to the VM. This package is only run once so after this reboot you'll be able to use the VM.
 
 ## Configuring CloudInit
 
@@ -65,8 +66,9 @@ This file performs two purposes, the first rather obvious (installing qemu-guest
     sudo qm set 8001 --cipassword $(openssl passwd -6 $CLEARTEXT_PASSWORD)
     sudo qm set 8001 --sshkeys ~/.ssh/authorized_keys
     sudo qm set 8001 --ipconfig0 ip=dhcp
+    sudo qm set 8001 --serial0 socket
 
-The first command tells CI to use the vendor file we specified earler. The second can be skipped but adds decorative tags that show up in the Proxmox Web-UI. Cloned VMs inherit all these tags. The third specifies the user to create. The fourth sets the password. The fifth imports SSH public keys so you can SSH in. Finally the virtio NIC is set to DHCP, this is *supposed* to be the default but manual specifying is necessary.
+The first command tells CI to use the vendor file we specified earler. The second can be skipped but adds decorative tags that show up in the Proxmox Web-UI. Cloned VMs inherit all these tags. The third specifies the user to create. The fourth sets the password. The fifth imports SSH public keys so you can SSH in. The sixth the virtio NIC is set to DHCP, this is *supposed* to be the default but manual specifying is necessary. The last one is optional, when You want to use xterm.js console.
 
 ## Finally: Converting to template
 
